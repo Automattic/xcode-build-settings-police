@@ -31,7 +31,10 @@ let package = Package(
         ),
         .testTarget(
             name: "BuildSettingsPoliceCoreTests",
-            dependencies: ["BuildSettingsPoliceCore"]
+            dependencies: [
+                "BuildSettingsPoliceCore",
+                "BuildSettingsPolice",
+            ]
         ),
     ]
 )
