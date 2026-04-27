@@ -48,6 +48,110 @@ struct CheckCommandIntegrationTests {
 
         #expect(result.exitCode != 0)
     }
+
+    @Test func allFlagBehavesLikeDefault() throws {
+        let fixture = try FixtureProject.make()
+        defer { fixture.cleanup() }
+
+        let result = try runCheck(projectPath: fixture.projectPath, arguments: ["--all"])
+
+        #expect(result.exitCode != 0)
+        #expect(result.stdout.contains("project [Debug]"))
+        #expect(result.stdout.contains("target App [Debug]"))
+    }
+
+    @Test func projectFlagFiltersOutTargetViolations() throws {
+        let fixture = try FixtureProject.make()
+        defer { fixture.cleanup() }
+
+        let result = try runCheck(projectPath: fixture.projectPath, arguments: ["--project"])
+
+        #expect(result.exitCode != 0)
+        #expect(result.stdout.contains("project [Debug]"))
+        #expect(!result.stdout.contains("target App"))
+    }
+
+    @Test func noProjectFlagFiltersOutProjectViolations() throws {
+        let fixture = try FixtureProject.make()
+        defer { fixture.cleanup() }
+
+        let result = try runCheck(projectPath: fixture.projectPath, arguments: ["--no-project"])
+
+        #expect(result.exitCode != 0)
+        #expect(result.stdout.contains("target App [Debug]"))
+        #expect(!result.stdout.contains("project ["))
+    }
+
+    @Test func targetFlagRestrictsToNamedTarget() throws {
+        let fixture = try FixtureProject.make()
+        defer { fixture.cleanup() }
+
+        let result = try runCheck(projectPath: fixture.projectPath, arguments: ["--target", "App"])
+
+        #expect(result.exitCode != 0)
+        #expect(result.stdout.contains("target App [Debug]"))
+        #expect(!result.stdout.contains("project ["))
+    }
+
+    @Test func noTargetFlagSkipsNamedTarget() throws {
+        let fixture = try FixtureProject.make()
+        defer { fixture.cleanup() }
+
+        let result = try runCheck(projectPath: fixture.projectPath, arguments: ["--no-target", "App"])
+
+        #expect(result.exitCode != 0)
+        #expect(result.stdout.contains("project [Debug]"))
+        #expect(!result.stdout.contains("target App"))
+    }
+
+    @Test func cleanWhenAllDirtyTargetsAreExcluded() throws {
+        let fixture = try FixtureProject.make(projectDebugInlineSettings: [:])
+        defer { fixture.cleanup() }
+
+        let result = try runCheck(projectPath: fixture.projectPath, arguments: ["--no-target", "App"])
+
+        #expect(result.exitCode == 0)
+        #expect(result.stdout.contains("No inline build settings found."))
+    }
+
+    @Test func unknownTargetNameProducesError() throws {
+        let fixture = try FixtureProject.make()
+        defer { fixture.cleanup() }
+
+        let result = try runCheck(projectPath: fixture.projectPath, arguments: ["--target", "DoesNotExist"])
+
+        #expect(result.exitCode != 0)
+        let combined = result.stdout + result.stderr
+        #expect(combined.contains("DoesNotExist"))
+    }
+
+    @Test func includeAndExcludeFlagsCannotBeCombined() throws {
+        let fixture = try FixtureProject.make()
+        defer { fixture.cleanup() }
+
+        let result = try runCheck(
+            projectPath: fixture.projectPath,
+            arguments: ["--project", "--no-target", "App"]
+        )
+
+        #expect(result.exitCode != 0)
+        let combined = result.stdout + result.stderr
+        #expect(combined.lowercased().contains("cannot be combined"))
+    }
+
+    @Test func allFlagCannotBeCombinedWithScopeFlags() throws {
+        let fixture = try FixtureProject.make()
+        defer { fixture.cleanup() }
+
+        let result = try runCheck(
+            projectPath: fixture.projectPath,
+            arguments: ["--all", "--project"]
+        )
+
+        #expect(result.exitCode != 0)
+        let combined = result.stdout + result.stderr
+        #expect(combined.lowercased().contains("mutually exclusive"))
+    }
 }
 
 private struct RunResult {
