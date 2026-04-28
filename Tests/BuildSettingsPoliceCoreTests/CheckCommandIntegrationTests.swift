@@ -25,6 +25,29 @@ struct CheckCommandIntegrationTests {
         #expect(result.stdout.contains("Found"))
         #expect(result.stdout.contains("project [Debug]"))
         #expect(result.stdout.contains("target App [Debug]"))
+        #expect(!result.stdout.contains("PROJECT_KEY"))
+        #expect(!result.stdout.contains("TARGET_KEY"))
+    }
+
+    @Test func verboseFlagListsSettingKeysInRows() throws {
+        let fixture = try FixtureProject.make()
+        defer { fixture.cleanup() }
+
+        let result = try runCheck(projectPath: fixture.projectPath, arguments: ["--verbose"])
+
+        #expect(result.exitCode != 0)
+        #expect(result.stdout.contains("project [Debug]: PROJECT_KEY"))
+        #expect(result.stdout.contains("TARGET_KEY"))
+    }
+
+    @Test func verboseShortFlagBehavesLikeLongForm() throws {
+        let fixture = try FixtureProject.make()
+        defer { fixture.cleanup() }
+
+        let result = try runCheck(projectPath: fixture.projectPath, arguments: ["-v"])
+
+        #expect(result.exitCode != 0)
+        #expect(result.stdout.contains("PROJECT_KEY"))
     }
 
     @Test func emitsJSONWhenFormatFlagIsJSON() throws {

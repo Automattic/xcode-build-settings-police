@@ -25,6 +25,9 @@ struct CheckCommand: ParsableCommand {
     @Option(name: .customLong("no-target"), parsing: .singleValue, help: "Exclude the named target from the check. Repeatable.")
     var excludedTargets: [String] = []
 
+    @Flag(name: .shortAndLong, help: "List the inline setting keys for each row instead of showing only counts.")
+    var verbose: Bool = false
+
     func validate() throws {
         let hasInclude = project == true || !targets.isEmpty
         let hasExclude = project == false || !excludedTargets.isEmpty
@@ -41,7 +44,7 @@ struct CheckCommand: ParsableCommand {
         let selection = buildSelection()
         try selection.validate(against: loadedProject)
         let report = InlineSettingsChecker().check(loadedProject).filtered(by: selection)
-        let output = try CheckReportFormatter().format(report, as: format)
+        let output = try CheckReportFormatter().format(report, as: format, verbose: verbose)
         print(output)
         if report.hasViolations {
             throw ExitCode.failure
