@@ -46,5 +46,12 @@ let package = Package(
                 "XCConfigKit",
             ]
         ),
+        .testTarget(
+            name: "XCConfigKitIntegrationTests",
+            dependencies: [
+                "XCConfigKit",
+                .product(name: "XcodeProj", package: "XcodeProj"),
+            ]
+        ),
     ]
 )
