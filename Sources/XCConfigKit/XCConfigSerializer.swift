@@ -28,11 +28,11 @@ public struct XCConfigSerializer {
     }
 
     private func quoted(_ raw: String) -> String {
-        needsQuoting(raw) ? "\"\(raw)\"" : raw
+        needsQuoting(raw) ? "\"\(escape(raw))\"" : raw
     }
 
     private func needsQuoting(_ raw: String) -> Bool {
-        if raw.contains("//") || raw.contains(";") {
+        if raw.contains("//") || raw.contains(";") || raw.contains("\"") || raw.contains("\\") {
             return true
         }
         if let first = raw.first, first.isWhitespace {
@@ -42,5 +42,17 @@ public struct XCConfigSerializer {
             return true
         }
         return false
+    }
+
+    private func escape(_ raw: String) -> String {
+        var result = ""
+        result.reserveCapacity(raw.count)
+        for char in raw {
+            if char == "\\" || char == "\"" {
+                result.append("\\")
+            }
+            result.append(char)
+        }
+        return result
     }
 }
