@@ -3,10 +3,10 @@ public struct XCConfigSerializer {
 
     public func serialize(_ file: XCConfigFile) -> String {
         var blocks: [String] = []
-        if !file.includes.isEmpty {
+        if file.includes.isEmpty == false {
             blocks.append(file.includes.map { "#include \"\($0)\"\n" }.joined())
         }
-        if !file.settings.isEmpty {
+        if file.settings.isEmpty == false {
             var lines: [String] = []
             for key in file.settings.keys.sorted() {
                 let value = file.settings[key]!
