@@ -27,6 +27,7 @@ let package = Package(
         .target(
             name: "BuildSettingsPoliceCore",
             dependencies: [
+                "XCConfigKit",
                 .product(name: "XcodeProj", package: "XcodeProj"),
             ]
         ),
