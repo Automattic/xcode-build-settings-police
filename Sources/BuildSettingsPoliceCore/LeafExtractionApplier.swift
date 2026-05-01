@@ -47,7 +47,10 @@ public struct LeafExtractionApplier: Sendable {
         configuration.baseConfiguration = fileReference
         configuration.buildSettings = [:]
 
-        try xcodeProj.write(path: Path(projectPath))
+        try xcodeProj.writePBXProj(
+            path: Path(projectPath),
+            outputSettings: PBXOutputSettings()
+        )
     }
 
     private func registerFileReference(
