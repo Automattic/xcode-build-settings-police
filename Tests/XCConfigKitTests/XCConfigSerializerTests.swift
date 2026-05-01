@@ -61,6 +61,46 @@ struct XCConfigSerializerTests {
         #expect(output == "KEY = \"a;b\"\n")
     }
 
+    @Test func escapesEmbeddedDoubleQuotesWhenQuotingValue() {
+        let file = XCConfigFile(settings: [
+            "KEY": .string("\"a\""),
+        ])
+
+        let output = XCConfigSerializer().serialize(file)
+
+        #expect(output == "KEY = \"\\\"a\\\"\"\n")
+    }
+
+    @Test func escapesBackslashOnlyValue() {
+        let file = XCConfigFile(settings: [
+            "KEY": .string("\\"),
+        ])
+
+        let output = XCConfigSerializer().serialize(file)
+
+        #expect(output == "KEY = \"\\\\\"\n")
+    }
+
+    @Test func escapesBackslashesInsideQuotedValue() {
+        let file = XCConfigFile(settings: [
+            "KEY": .string("a\\na"),
+        ])
+
+        let output = XCConfigSerializer().serialize(file)
+
+        #expect(output == "KEY = \"a\\\\na\"\n")
+    }
+
+    @Test func escapesEmbeddedDoubleQuotesInsideArrayElement() {
+        let file = XCConfigFile(settings: [
+            "OTHER_SWIFT_FLAGS": .array(["$(inherited)", "\"VALUE\""]),
+        ])
+
+        let output = XCConfigSerializer().serialize(file)
+
+        #expect(output == "OTHER_SWIFT_FLAGS = $(inherited) \"\\\"VALUE\\\"\"\n")
+    }
+
     @Test func rendersEmptyStringValueWithoutTrailingSpace() {
         let file = XCConfigFile(settings: [
             "KEY": .string(""),
