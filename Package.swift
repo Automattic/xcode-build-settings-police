@@ -10,6 +10,7 @@ let package = Package(
     products: [
         .executable(name: "build-settings-police", targets: ["BuildSettingsPolice"]),
         .library(name: "BuildSettingsPoliceCore", targets: ["BuildSettingsPoliceCore"]),
+        .library(name: "XCConfigKit", targets: ["XCConfigKit"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.5.0"),
@@ -29,11 +30,20 @@ let package = Package(
                 .product(name: "XcodeProj", package: "XcodeProj"),
             ]
         ),
+        .target(
+            name: "XCConfigKit"
+        ),
         .testTarget(
             name: "BuildSettingsPoliceCoreTests",
             dependencies: [
                 "BuildSettingsPoliceCore",
                 "BuildSettingsPolice",
+            ]
+        ),
+        .testTarget(
+            name: "XCConfigKitTests",
+            dependencies: [
+                "XCConfigKit",
             ]
         ),
     ]
