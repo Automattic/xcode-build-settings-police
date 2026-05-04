@@ -43,3 +43,23 @@ A small tool to extract builds settings from Xcode projects into hierarchical `x
       A small standalone fixture project demonstrating the same
       behavior would be cleaner than depending on wcios — worth
       preparing one if the wcios reference proves controversial.
+
+- [ ] **Multi-configuration extract.** `extract` currently takes a
+      single `--target`/`--configuration` pair. Real targets typically
+      have parallel `Debug`, `Release`, and project-specific variants
+      (e.g. wcios's `Release-Alpha`) with overlapping but distinct
+      inline settings. Options to consider, roughly in order of effort:
+
+      - `--configuration <Name>` repeatable, one xcconfig file per
+        invocation pass. Simplest. Caller drives the loop.
+      - `--all-configurations` flag. Tool extracts every configuration
+        on the named target, producing one xcconfig per
+        `(target, configuration)` leaf.
+      - `--all-targets` plus `--all-configurations`. Full sweep. At
+        this point start thinking about the M6 hierarchy planning
+        (hoisting shared settings up the include chain) instead of
+        emitting N redundant leaves.
+
+      Decision deferred until we've manually extracted a couple of
+      multi-config targets to see what the redundancy looks like in
+      practice.
