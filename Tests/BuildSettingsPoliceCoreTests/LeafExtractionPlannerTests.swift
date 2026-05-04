@@ -26,7 +26,7 @@ struct LeafExtractionPlannerTests {
         #expect(plan.targetName == "App")
         #expect(plan.configurationName == "Debug")
         #expect(plan.xcconfigFilename == "App-Debug.xcconfig")
-        #expect(plan.outputDirectory == "Config")
+        #expect(plan.xcconfigPathInProject == "Config/App-Debug.xcconfig")
         #expect(plan.extractedSettingKeys == ["OTHER_LDFLAGS", "PRODUCT_NAME"])
         #expect(plan.xcconfigContents.contains("OTHER_LDFLAGS = $(inherited) -ObjC\n"))
         #expect(plan.xcconfigContents.contains("PRODUCT_NAME = App\n"))
@@ -109,7 +109,7 @@ struct LeafExtractionPlannerTests {
         }
     }
 
-    @Test func emptyOutputDirectoryProducesBareFilename() throws {
+    @Test func emptyOutputDirectoryWritesAlongsideTheProject() throws {
         let fixture = try FixtureProject.make(targetDebugBaseConfigPath: nil)
         defer { fixture.cleanup() }
 
@@ -120,10 +120,12 @@ struct LeafExtractionPlannerTests {
             outputDirectory: ""
         )
 
-        #expect(plan.xcconfigRelativePath == "App-Debug.xcconfig")
+        #expect(plan.xcconfigPathInProject == "App-Debug.xcconfig")
+        let expectedURL = fixture.directoryURL.appendingPathComponent("App-Debug.xcconfig").standardizedFileURL
+        #expect(plan.xcconfigAbsoluteURL == expectedURL)
     }
 
-    @Test func relativePathJoinsOutputDirectoryAndFilename() throws {
+    @Test func relativeOutputDirectoryAnchorsAtProjectParent() throws {
         let fixture = try FixtureProject.make(targetDebugBaseConfigPath: nil)
         defer { fixture.cleanup() }
 
@@ -134,6 +136,71 @@ struct LeafExtractionPlannerTests {
             outputDirectory: "Config"
         )
 
-        #expect(plan.xcconfigRelativePath == "Config/App-Debug.xcconfig")
+        #expect(plan.xcconfigPathInProject == "Config/App-Debug.xcconfig")
+        let expectedURL = fixture.directoryURL
+            .appendingPathComponent("Config")
+            .appendingPathComponent("App-Debug.xcconfig")
+            .standardizedFileURL
+        #expect(plan.xcconfigAbsoluteURL == expectedURL)
+    }
+
+    @Test func relativeOutputDirectoryWithDotDotEscapesProjectParent() throws {
+        let fixture = try FixtureProject.make(targetDebugBaseConfigPath: nil)
+        defer { fixture.cleanup() }
+
+        let plan = try LeafExtractionPlanner().plan(
+            projectPath: fixture.projectPath,
+            targetName: "App",
+            configurationName: "Debug",
+            outputDirectory: "../sibling-config"
+        )
+
+        #expect(plan.xcconfigPathInProject == "../sibling-config/App-Debug.xcconfig")
+        let expectedURL = fixture.directoryURL
+            .deletingLastPathComponent()
+            .appendingPathComponent("sibling-config")
+            .appendingPathComponent("App-Debug.xcconfig")
+            .standardizedFileURL
+        #expect(plan.xcconfigAbsoluteURL == expectedURL)
+    }
+
+    @Test func absoluteOutputDirectoryInsideProjectParent() throws {
+        let fixture = try FixtureProject.make(targetDebugBaseConfigPath: nil)
+        defer { fixture.cleanup() }
+
+        let absolute = fixture.directoryURL.appendingPathComponent("Config").path
+
+        let plan = try LeafExtractionPlanner().plan(
+            projectPath: fixture.projectPath,
+            targetName: "App",
+            configurationName: "Debug",
+            outputDirectory: absolute
+        )
+
+        #expect(plan.xcconfigPathInProject == "Config/App-Debug.xcconfig")
+        let expectedURL = URL(fileURLWithPath: absolute)
+            .appendingPathComponent("App-Debug.xcconfig")
+            .standardizedFileURL
+        #expect(plan.xcconfigAbsoluteURL == expectedURL)
+    }
+
+    @Test func absoluteOutputDirectoryOutsideProjectParent() throws {
+        let fixture = try FixtureProject.make(targetDebugBaseConfigPath: nil)
+        defer { fixture.cleanup() }
+
+        let outside = fixture.directoryURL
+            .deletingLastPathComponent()
+            .appendingPathComponent("external-config-\(UUID().uuidString)")
+
+        let plan = try LeafExtractionPlanner().plan(
+            projectPath: fixture.projectPath,
+            targetName: "App",
+            configurationName: "Debug",
+            outputDirectory: outside.path
+        )
+
+        #expect(plan.xcconfigPathInProject.hasPrefix("../"))
+        #expect(plan.xcconfigPathInProject.hasSuffix("/App-Debug.xcconfig"))
+        #expect(plan.xcconfigAbsoluteURL == outside.appendingPathComponent("App-Debug.xcconfig").standardizedFileURL)
     }
 }

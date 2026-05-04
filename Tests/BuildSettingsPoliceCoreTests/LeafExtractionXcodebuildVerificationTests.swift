@@ -28,11 +28,7 @@ struct LeafExtractionXcodebuildVerificationTests {
             configurationName: "Debug",
             outputDirectory: "Config"
         )
-        try LeafExtractionApplier().apply(
-            plan: plan,
-            projectPath: fixture.projectPath,
-            outputBaseURL: fixture.directoryURL
-        )
+        try LeafExtractionApplier().apply(plan: plan, projectPath: fixture.projectPath)
 
         let after = try captureBuildSettings(
             projectPath: fixture.projectPath,

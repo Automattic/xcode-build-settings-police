@@ -1,29 +1,30 @@
+import Foundation
+
 public struct LeafExtractionPlan: Sendable, Equatable {
     public let targetName: String
     public let configurationName: String
     public let xcconfigFilename: String
-    public let outputDirectory: String
     public let xcconfigContents: String
     public let extractedSettingKeys: [String]
+    public let xcconfigAbsoluteURL: URL
+    public let xcconfigPathInProject: String
 
     public init(
         targetName: String,
         configurationName: String,
         xcconfigFilename: String,
-        outputDirectory: String,
         xcconfigContents: String,
-        extractedSettingKeys: [String]
+        extractedSettingKeys: [String],
+        xcconfigAbsoluteURL: URL,
+        xcconfigPathInProject: String
     ) {
         self.targetName = targetName
         self.configurationName = configurationName
         self.xcconfigFilename = xcconfigFilename
-        self.outputDirectory = outputDirectory
         self.xcconfigContents = xcconfigContents
         self.extractedSettingKeys = extractedSettingKeys
-    }
-
-    public var xcconfigRelativePath: String {
-        outputDirectory.isEmpty ? xcconfigFilename : "\(outputDirectory)/\(xcconfigFilename)"
+        self.xcconfigAbsoluteURL = xcconfigAbsoluteURL
+        self.xcconfigPathInProject = xcconfigPathInProject
     }
 }
 

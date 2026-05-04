@@ -17,7 +17,7 @@ struct ExtractCommand: ParsableCommand {
     @Option(help: "Configuration on the named target to extract.")
     var configuration: String
 
-    @Option(help: "Output directory for the generated .xcconfig, relative to the project's parent directory.")
+    @Option(help: "Output directory for the generated .xcconfig. Absolute or relative to the project's parent directory; `..` segments are honored.")
     var output: String
 
     @Flag(help: "Print the plan without writing anything.")
@@ -36,21 +36,16 @@ struct ExtractCommand: ParsableCommand {
             return
         }
 
-        let projectURL = URL(fileURLWithPath: projectPath)
-        let outputBaseURL = projectURL.deletingLastPathComponent()
-        try LeafExtractionApplier().apply(
-            plan: plan,
-            projectPath: projectPath,
-            outputBaseURL: outputBaseURL
-        )
-        print("Wrote \(plan.xcconfigRelativePath) and attached it to \(plan.targetName) [\(plan.configurationName)].")
+        try LeafExtractionApplier().apply(plan: plan, projectPath: projectPath)
+        print("Wrote \(plan.xcconfigPathInProject) and attached it to \(plan.targetName) [\(plan.configurationName)].")
     }
 
     private func printPlan(_ plan: LeafExtractionPlan) {
         print("Dry run — no files written, no project mutations.")
         print("Target:        \(plan.targetName)")
         print("Configuration: \(plan.configurationName)")
-        print("Will write:    \(plan.xcconfigRelativePath)")
+        print("Will write:    \(plan.xcconfigAbsoluteURL.path)")
+        print("Project ref:   \(plan.xcconfigPathInProject)")
         print("Settings to extract (\(plan.extractedSettingKeys.count)):")
         for key in plan.extractedSettingKeys {
             print("  - \(key)")

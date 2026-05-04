@@ -27,11 +27,7 @@ struct LeafExtractionApplierIsolationTests {
             configurationName: "Debug",
             outputDirectory: "Config"
         )
-        try LeafExtractionApplier().apply(
-            plan: plan,
-            projectPath: fixture.projectPath,
-            outputBaseURL: fixture.directoryURL
-        )
+        try LeafExtractionApplier().apply(plan: plan, projectPath: fixture.projectPath)
 
         #expect(FileManager.default.fileExists(atPath: sentinelURL.path))
         let reloadedContent = try String(contentsOf: sentinelURL, encoding: .utf8)
@@ -61,11 +57,7 @@ struct LeafExtractionApplierIsolationTests {
             configurationName: "Debug",
             outputDirectory: "Config"
         )
-        try LeafExtractionApplier().apply(
-            plan: plan,
-            projectPath: fixture.projectPath,
-            outputBaseURL: fixture.directoryURL
-        )
+        try LeafExtractionApplier().apply(plan: plan, projectPath: fixture.projectPath)
 
         #expect(FileManager.default.fileExists(atPath: sentinelURL.path))
         let reloadedContent = try String(contentsOf: sentinelURL, encoding: .utf8)
@@ -94,11 +86,7 @@ struct LeafExtractionApplierIsolationTests {
             configurationName: "Debug",
             outputDirectory: "Config"
         )
-        try LeafExtractionApplier().apply(
-            plan: plan,
-            projectPath: fixture.projectPath,
-            outputBaseURL: fixture.directoryURL
-        )
+        try LeafExtractionApplier().apply(plan: plan, projectPath: fixture.projectPath)
 
         let reloadedContent = try String(contentsOf: workspaceFile, encoding: .utf8)
         #expect(reloadedContent == originalContent)

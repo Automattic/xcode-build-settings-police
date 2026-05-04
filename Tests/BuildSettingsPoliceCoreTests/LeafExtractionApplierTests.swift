@@ -20,11 +20,7 @@ struct LeafExtractionApplierTests {
             outputDirectory: "Config"
         )
 
-        try LeafExtractionApplier().apply(
-            plan: plan,
-            projectPath: fixture.projectPath,
-            outputBaseURL: fixture.directoryURL
-        )
+        try LeafExtractionApplier().apply(plan: plan, projectPath: fixture.projectPath)
 
         let xcconfigURL = fixture.directoryURL
             .appendingPathComponent("Config")
@@ -50,11 +46,7 @@ struct LeafExtractionApplierTests {
             outputDirectory: "Config"
         )
 
-        try LeafExtractionApplier().apply(
-            plan: plan,
-            projectPath: fixture.projectPath,
-            outputBaseURL: fixture.directoryURL
-        )
+        try LeafExtractionApplier().apply(plan: plan, projectPath: fixture.projectPath)
 
         let reloaded = try XcodeProj(pathString: fixture.projectPath)
         let target = try #require(
@@ -83,11 +75,7 @@ struct LeafExtractionApplierTests {
             outputDirectory: "Config"
         )
 
-        try LeafExtractionApplier().apply(
-            plan: plan,
-            projectPath: fixture.projectPath,
-            outputBaseURL: fixture.directoryURL
-        )
+        try LeafExtractionApplier().apply(plan: plan, projectPath: fixture.projectPath)
 
         let reloaded = try XcodeProj(pathString: fixture.projectPath)
         let project = try #require(reloaded.pbxproj.rootObject)
@@ -118,11 +106,7 @@ struct LeafExtractionApplierTests {
             outputDirectory: "Config"
         )
 
-        try LeafExtractionApplier().apply(
-            plan: plan,
-            projectPath: fixture.projectPath,
-            outputBaseURL: fixture.directoryURL
-        )
+        try LeafExtractionApplier().apply(plan: plan, projectPath: fixture.projectPath)
 
         let reloaded = try XcodeProj(pathString: fixture.projectPath)
         let mainGroup = try #require(reloaded.pbxproj.rootObject?.mainGroup)
@@ -148,14 +132,42 @@ struct LeafExtractionApplierTests {
             outputDirectory: "Config"
         )
 
-        try LeafExtractionApplier().apply(
-            plan: plan,
-            projectPath: fixture.projectPath,
-            outputBaseURL: fixture.directoryURL
-        )
+        try LeafExtractionApplier().apply(plan: plan, projectPath: fixture.projectPath)
 
         let xcconfigURL = configDir.appendingPathComponent("App-Debug.xcconfig")
         #expect(FileManager.default.fileExists(atPath: xcconfigURL.path))
+    }
+
+    @Test func writesToAbsoluteOutputDirectory() throws {
+        let fixture = try FixtureProject.make(
+            targetDebugInlineSettings: ["PRODUCT_NAME": "App"],
+            targetDebugBaseConfigPath: nil
+        )
+        defer { fixture.cleanup() }
+
+        let absoluteOutput = fixture.directoryURL
+            .deletingLastPathComponent()
+            .appendingPathComponent("absolute-output-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: absoluteOutput) }
+
+        let plan = try LeafExtractionPlanner().plan(
+            projectPath: fixture.projectPath,
+            targetName: "App",
+            configurationName: "Debug",
+            outputDirectory: absoluteOutput.path
+        )
+
+        try LeafExtractionApplier().apply(plan: plan, projectPath: fixture.projectPath)
+
+        let xcconfigURL = absoluteOutput.appendingPathComponent("App-Debug.xcconfig")
+        #expect(FileManager.default.fileExists(atPath: xcconfigURL.path))
+
+        let reloaded = try XcodeProj(pathString: fixture.projectPath)
+        let configuration = try #require(
+            reloaded.pbxproj.rootObject?.targets.first?.buildConfigurationList?
+                .buildConfigurations.first(where: { $0.name == "Debug" })
+        )
+        #expect(configuration.baseConfiguration?.path?.hasPrefix("../") == true)
     }
 }
 

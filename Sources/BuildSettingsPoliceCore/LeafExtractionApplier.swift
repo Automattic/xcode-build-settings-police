@@ -5,22 +5,17 @@ import XcodeProj
 public struct LeafExtractionApplier: Sendable {
     public init() {}
 
-    public func apply(
-        plan: LeafExtractionPlan,
-        projectPath: String,
-        outputBaseURL: URL
-    ) throws {
-        let fileManager = FileManager.default
-        let outputDirectoryURL = plan.outputDirectory.isEmpty
-            ? outputBaseURL
-            : outputBaseURL.appendingPathComponent(plan.outputDirectory, isDirectory: true)
-        try fileManager.createDirectory(
+    public func apply(plan: LeafExtractionPlan, projectPath: String) throws {
+        let outputDirectoryURL = plan.xcconfigAbsoluteURL.deletingLastPathComponent()
+        try FileManager.default.createDirectory(
             at: outputDirectoryURL,
             withIntermediateDirectories: true
         )
-
-        let xcconfigURL = outputDirectoryURL.appendingPathComponent(plan.xcconfigFilename)
-        try plan.xcconfigContents.write(to: xcconfigURL, atomically: true, encoding: .utf8)
+        try plan.xcconfigContents.write(
+            to: plan.xcconfigAbsoluteURL,
+            atomically: true,
+            encoding: .utf8
+        )
 
         let xcodeProj = try XcodeProj(pathString: projectPath)
         guard let project = xcodeProj.pbxproj.rootObject else {
@@ -40,7 +35,7 @@ public struct LeafExtractionApplier: Sendable {
         }
 
         let fileReference = try registerFileReference(
-            for: plan.xcconfigRelativePath,
+            for: plan.xcconfigPathInProject,
             in: project.mainGroup,
             pbxproj: xcodeProj.pbxproj
         )
