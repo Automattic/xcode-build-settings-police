@@ -14,7 +14,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.5.0"),
-        .package(url: "https://github.com/mokagio/XcodeProj-Tuist.git", revision: "956d02f29c984edcadcc2313ce057e5fc66ddc0e"),
+        .package(url: "https://github.com/mokagio/XcodeProj-Tuist.git", revision: "c4bd95e55682918544ffb9bae568743acf236bf7"),
     ],
     targets: [
         .executableTarget(

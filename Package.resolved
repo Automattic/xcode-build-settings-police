@@ -1,5 +1,5 @@
 {
-  "originHash" : "0caa2ced9334cdc5ec733f43262b20c79f80c949bc7d4b1a52ede21a19b2b5cc",
+  "originHash" : "868b3d84c10c82e7654c30301673fc12a01457d5d2a7e931c3742d7bf1a65ea9",
   "pins" : [
     {
       "identity" : "aexml",
@@ -42,7 +42,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mokagio/XcodeProj-Tuist.git",
       "state" : {
-        "revision" : "956d02f29c984edcadcc2313ce057e5fc66ddc0e"
+        "revision" : "c4bd95e55682918544ffb9bae568743acf236bf7"
       }
     }
   ],
