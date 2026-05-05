@@ -14,7 +14,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.5.0"),
-        .package(url: "https://github.com/tuist/XcodeProj.git", from: "9.9.0"),
+        .package(url: "https://github.com/mokagio/XcodeProj-Tuist.git", revision: "c4bd95e55682918544ffb9bae568743acf236bf7"),
     ],
     targets: [
         .executableTarget(
@@ -27,7 +27,8 @@ let package = Package(
         .target(
             name: "BuildSettingsPoliceCore",
             dependencies: [
-                .product(name: "XcodeProj", package: "XcodeProj"),
+                "XCConfigKit",
+                .product(name: "XcodeProj", package: "XcodeProj-Tuist"),
             ]
         ),
         .target(
@@ -50,7 +51,7 @@ let package = Package(
             name: "XCConfigKitIntegrationTests",
             dependencies: [
                 "XCConfigKit",
-                .product(name: "XcodeProj", package: "XcodeProj"),
+                .product(name: "XcodeProj", package: "XcodeProj-Tuist"),
             ]
         ),
     ]
