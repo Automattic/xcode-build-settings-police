@@ -34,18 +34,62 @@ public struct LeafExtractionApplier: Sendable {
             )
         }
 
-        let fileReference = try registerFileReference(
-            for: plan.xcconfigPathInProject,
-            in: project.mainGroup,
-            pbxproj: xcodeProj.pbxproj
-        )
-        configuration.baseConfiguration = fileReference
+        let projectParent = URL(fileURLWithPath: projectPath).deletingLastPathComponent().path
+        let syncRoots = collectSynchronizedRootGroups(under: project.mainGroup)
+
+        if let match = try findContainingSyncRoot(
+            for: plan.xcconfigAbsoluteURL,
+            syncRoots: syncRoots,
+            sourceRoot: projectParent
+        ) {
+            configuration.baseConfigurationAnchor = match.group
+            configuration.baseConfigurationReferenceRelativePath = match.relativePath
+        } else {
+            let fileReference = try registerFileReference(
+                for: plan.xcconfigPathInProject,
+                in: project.mainGroup,
+                pbxproj: xcodeProj.pbxproj
+            )
+            configuration.baseConfiguration = fileReference
+        }
         configuration.buildSettings = [:]
 
         try xcodeProj.writePBXProj(
             path: Path(projectPath),
             outputSettings: PBXOutputSettings()
         )
+    }
+
+    private func collectSynchronizedRootGroups(under group: PBXGroup) -> [PBXFileSystemSynchronizedRootGroup] {
+        var collected: [PBXFileSystemSynchronizedRootGroup] = []
+        for child in group.children {
+            if let syncRoot = child as? PBXFileSystemSynchronizedRootGroup {
+                collected.append(syncRoot)
+            } else if let subgroup = child as? PBXGroup {
+                collected.append(contentsOf: collectSynchronizedRootGroups(under: subgroup))
+            }
+        }
+        return collected
+    }
+
+    private func findContainingSyncRoot(
+        for outputURL: URL,
+        syncRoots: [PBXFileSystemSynchronizedRootGroup],
+        sourceRoot: String
+    ) throws -> (group: PBXFileSystemSynchronizedRootGroup, relativePath: String)? {
+        let outputPath = outputURL.standardizedFileURL.path
+        var matches: [(group: PBXFileSystemSynchronizedRootGroup, relativePath: String)] = []
+
+        for group in syncRoots {
+            guard let groupAbsolute = try group.fullPath(sourceRoot: sourceRoot) else { continue }
+            let groupURL = URL(fileURLWithPath: groupAbsolute).standardizedFileURL
+            let prefix = groupURL.path + "/"
+            guard outputPath.hasPrefix(prefix) else { continue }
+            let relative = String(outputPath.dropFirst(prefix.count))
+            matches.append((group: group, relativePath: relative))
+        }
+
+        return matches.min(by: { $0.relativePath.count < $1.relativePath.count })
     }
 
     private func registerFileReference(
